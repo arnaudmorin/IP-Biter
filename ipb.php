@@ -652,6 +652,9 @@ var Dashboard = {
       $('#trackingImageEmoji3Btn').click(function(){
           $('#trackingImageOriginalUrlTxt').val('https://www.facebook.com/images/emoji.php/v9/z78/1/32/1f4e7.png').trigger('change');
       });
+      $('#trackingImagePixelBtn').click(function(){
+          $('#trackingImageOriginalUrlTxt').val('https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png').trigger('change');
+      });
       $('#trackingImageUploadBtn').click(function(e){
           e.preventDefault();
           $("#trackingImageFileInput").trigger('click');
@@ -948,6 +951,7 @@ textarea:read-only {
                                                 <li><a href="#" id="trackingImageEmoji1Btn">Emoji :)</a></li>
                                                 <li><a href="#" id="trackingImageEmoji2Btn">Emoji ;)</a></li>
                                                 <li><a href="#" id="trackingImageEmoji3Btn">Emoji @Mail</a></li>
+                                                <li><a href="#" id="trackingImagePixelBtn">Invisible Pixel</a></li>
                                                 <li class="divider"></li>
                                                 <li><a href="#" id="trackingImageUploadBtn">Upload custom image</a><input id="trackingImageFileInput" type="file" accept="image/*" style="display: none;"></li>
                                             </ul>
