@@ -270,7 +270,7 @@ var Dashboard = {
           Dashboard.loadTrackingReports();
           if(Utils.getURLParameter('uuid') != configJson.uuid)
               setTimeout(function(){
-                  $('<form method="post" action="'+Utils.getCurrentPath()+'?uuid='+configJson.uuid+(Utils.getURLParameter('op')!=''?'&op='+Utils.getURLParameter('op'):'')+'"><input name="secret" type="hidden" value="'+Dashboard._dashboardSecret+'"></form>').appendTo($('body')).submit().remove();
+                  $('<form method="post" action="'+Utils.getCurrentPath()+'?uuid='+configJson.uuid+(Utils.getURLParameter('op')!=null?'&op='+Utils.getURLParameter('op'):'')+'"><input name="secret" type="hidden" value="'+Dashboard._dashboardSecret+'"></form>').appendTo($('body')).submit().remove();
               }, 1000);
       },function(error){
           Utils.showError(error, $('#saveConfigMsgs'));
