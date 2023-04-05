@@ -111,13 +111,15 @@ Try to hack it as a challenge and report me your success; you will be rewarded w
 */
 
 /*START CONFIGURATION SECTION*/
-$dashboardPage = 'dashboard';
+$dashboardPage = '';
 $dashboardPageSecret = '';
 $configFolder = 'configs';
 $reportFolder = 'reports';
 $errorLogFile = 'error.log';
 $darkTheme = true;
 $debugMode = false;
+# Overwride some values in config.php, such as dashboardPageSecret
+require_once('config.php');
 /*END CONFIGURATION SECTION*/
 
 error_reporting($debugMode?-1:0);

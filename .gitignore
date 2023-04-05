@@ -1,3 +1,5 @@
 configs/
 error.log
 reports/
+config.php
+*.swp
