@@ -169,7 +169,7 @@ if(
 var Dashboard = {
   documentTitle : 'IP-Biter Dashboard',
   _dashboardSecret : '<?php echo isset($_REQUEST['secret'])?$_REQUEST['secret']:'';?>',
-  _anonymRedirectService : 'https://anonym.to/?', //'https://anon.to/?',
+  _anonymRedirectService : '',//'https://anonym.to/?', //'https://anon.to/?',
   _imageCustomHeaderIds : {},
   _trackingLinksIds : {},
   _trackTimestamp : 0,
@@ -1302,7 +1302,7 @@ if(isset($_GET['op']) && $_GET['op'] == 'i'){
             $track->time = time();
             file_put_contents(__DIR__.'/'.$reportFolder.'/'.$trackUUID.'.json', json_encode($track));
             if(function_exists('mail') && isset($config->notificationAddress) && $config->notificationAddress!=''){
-                $mailText = '<html><body><p>Your tracking image has been visualized right now by '.$_SERVER['REMOTE_ADDR'].'.</p><p>Check all the details in the <a href="'.(isset($_SERVER['HTTPS'])?'https':'http').'://'.$_SERVER['HTTP_HOST'].strtok($_SERVER['REQUEST_URI'],'?').'?op='.$dashboardPage.'&uuid='.$config->uuid.'">DASHBOARD</a></p></body></html>';
+                $mailText = '<html><body><p>Your tracking image has been visualized right now by '.$_SERVER['REMOTE_ADDR'].'.</p><p>Check all the details in the <a href="'.(isset($_SERVER['HTTPS'])?'https':'http').'://'.$_SERVER['HTTP_HOST'].strtok($_SERVER['REQUEST_URI'],'?').'?op='.$dashboardPage.'&uuid='.$config->uuid.'">'.(isset($_SERVER['HTTPS'])?'https':'http').'://'.$_SERVER['HTTP_HOST'].strtok($_SERVER['REQUEST_URI'],'?').'?op='.$dashboardPage.'&uuid='.$config->uuid.'</a></p></body></html>';
                 $mailSent = mail($config->notificationAddress, '[Tracking Live Report] '.$config->mailId, wordwrap($mailText, 70, "\r\n"), "MIME-Version: 1.0\r\nContent-type:text/html;charset=UTF-8\r\n");
                 if(!$mailSent)
                     $logError("Mail not sended: ". error_get_last()!=null?error_get_last()['message']:'No PHP error detected');
