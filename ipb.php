@@ -169,7 +169,7 @@ if(
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script type="text/javascript">
 var Dashboard = {
-  documentTitle : 'IP-Biter Dashboard',
+  documentTitle : 'Mail tracker',
   _dashboardSecret : '<?php echo isset($_REQUEST['secret'])?$_REQUEST['secret']:'';?>',
   _anonymRedirectService : '',//'https://anonym.to/?', //'https://anon.to/?',
   _imageCustomHeaderIds : {},
@@ -189,6 +189,11 @@ var Dashboard = {
       },
       callConfigSaverService : function(configJson, successCallback, failureCallback){
           Utils.callService('save', null, configJson, successCallback, failureCallback);
+      },
+      callListTracksService : function(successCallback, failureCallback){
+          Utils.callService('listTracks', 'secret='+Dashboard._dashboardSecret, null, function(data){
+              successCallback(data.list);
+          }, failureCallback);
       },
       callLoadConfigService : function(uuid, successCallback, failureCallback){
           Utils.callService('loadConfig', 'id='+uuid, null, function(data){
@@ -210,6 +215,39 @@ var Dashboard = {
               successCallback(data.whoisResults);
           }, failureCallback);
       }
+  },
+
+  listTracks : function(){
+      Dashboard.services.callListTracksService(function(tracks){
+          // Sort tracks
+          tracks.sort((b, a) => a.date - b.date);
+          tracks.forEach(function(data){
+              var dateFormat = new Date(data.date * 1000);
+              $('#tracksDiv').append(
+                  $('<div class="list-group-item">').append(
+                      $('<div class="row link" id="'+data.uuid+'_overview_div" title="Click to select">').append(
+                          $('<div class="col-lg-4">').append(
+                              '<h4><span class="label label-default">'+data.uuid+'</span></h4>'
+                          )
+                      )
+                      .append(
+                          $('<div class="col-lg-6">').append(
+                              '<h4><span class="label label-default">'+data.mailId+'</span></h4>'
+                          )
+                      )
+                      .append(
+                          $('<div class="col-lg-2">').append(
+                              '<h4><span class="label label-default">'+dateFormat.toLocaleDateString("fr")+" "+dateFormat.getHours()+":"+dateFormat.getMinutes()+'</span></h4>'
+                          )
+                      )
+                  ).click(function(e){
+                      $('#trackUUIDTxt').val(data.uuid);
+                  })
+              );
+          });
+      },function(error){
+          Utils.showError(error, $('#listTracksMsgs'));
+      });
   },
   
   loadUUID : function(){
@@ -678,6 +716,8 @@ var Dashboard = {
       } else {
           Dashboard.newUUID();
       }
+
+      Dashboard.listTracks();
       
       Dashboard.startBackgroundTrackListUpdate();
       
@@ -880,7 +920,16 @@ textarea:read-only {
 <body>
     <div id="mainContainer" class="container">
         <div class="page-header text-center">
-            <h1>IP-Biter Framework </h1><h1><small>Dashboard</small></h1>
+            <h1>Mail tracker</h1><h1><small>Dashboard</small></h1>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading link" data-toggle="collapse" data-target="#tracksDiv">
+                <h4 class="panel-title">Existing tracks<span class="caret"></span></h4>
+            </div>
+            <div class="panel-collapse list-group" id="tracksDiv">
+            </div>
+            <div id="tracksMsgs"></div>
         </div>
         
         <div class="row form-group">
@@ -1132,6 +1181,30 @@ if(isset($_GET['op']) && $_GET['op'] == 'save'){
         }
         file_put_contents($configFolderFull.'/'.$json->uuid.'.json', $jsonString);
         echo '{"status" : 0}';
+    }catch(Exception $ex){
+        echo '{"status" : -1, "error" : "'.$ex->getMessage().'"}';
+        $logError($ex->getMessage());
+    }
+    exit();
+}
+
+if((isset($_GET['op']) && $_GET['op'] == 'listTracks') && (isset($_REQUEST['secret']) && $_REQUEST['secret'] == $dashboardPageSecret)){
+    header('Content-Type: application/json');
+    try{
+        $lines = scandir(__DIR__.'/'.$configFolder.'/');
+        $tracks = array();
+        foreach ($lines as $line) {
+            if (mb_strpos($line, '.json')) {
+                # Try loading the mailId from the config
+                $config = json_decode(file_get_contents(__DIR__.'/'.$configFolder.'/'.$line), true);
+                $mailId = $config['mailId'];
+                $uuid = str_replace('.json', '', $line);
+                # Get file data
+                $d = filemtime(__DIR__.'/'.$configFolder.'/'.$line);
+                $tracks[] = array('uuid' => $uuid, 'mailId' => $mailId, 'date' => $d);
+            }
+        }
+        echo '{"status" : 0, "list" : '.json_encode($tracks).'}';
     }catch(Exception $ex){
         echo '{"status" : -1, "error" : "'.$ex->getMessage().'"}';
         $logError($ex->getMessage());
