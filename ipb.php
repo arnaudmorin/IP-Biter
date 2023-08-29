@@ -195,6 +195,9 @@ var Dashboard = {
               successCallback(data.list);
           }, failureCallback);
       },
+      deleteTrackService : function(uuid, successCallback, failureCallback){
+          Utils.callService('deleteTrack', 'uuid='+uuid+'&secret='+Dashboard._dashboardSecret, null, successCallback, failureCallback);
+      },
       callLoadConfigService : function(uuid, successCallback, failureCallback){
           Utils.callService('loadConfig', 'id='+uuid, null, function(data){
               successCallback(data.config);
@@ -225,13 +228,13 @@ var Dashboard = {
               var dateFormat = new Date(data.date * 1000);
               $('#tracksDiv').append(
                   $('<div class="list-group-item">').append(
-                      $('<div class="row link" id="'+data.uuid+'_overview_div" title="Click to select">').append(
-                          $('<div class="col-lg-4">').append(
+                      $('<div class="row link">').append(
+                          $('<div class="col-lg-3">').append(
                               '<h4><span class="label label-default">'+data.uuid+'</span></h4>'
                           )
                       )
                       .append(
-                          $('<div class="col-lg-6">').append(
+                          $('<div class="col-lg-5">').append(
                               '<h4><span class="label label-default">'+data.mailId+'</span></h4>'
                           )
                       )
@@ -240,9 +243,31 @@ var Dashboard = {
                               '<h4><span class="label label-default">'+dateFormat.toLocaleDateString("fr")+" "+dateFormat.getHours()+":"+dateFormat.getMinutes()+'</span></h4>'
                           )
                       )
-                  ).click(function(e){
-                      $('#trackUUIDTxt').val(data.uuid);
-                  })
+                      .append(
+                          $('<div class="col-lg-2">').append(
+			      $('<a class="btn btn-default" role="button">Delete</a>').click(function(e){
+                                  ret = confirm("Sure?");
+                                  //ret = true;
+                                  if (ret) {
+                                      Dashboard.services.deleteTrackService(data.uuid, function(_x){
+                                          // On success, reload the track list
+                                          $('#tracksDiv').empty();
+                                          Dashboard.listTracks();
+                                      }, function(error){
+                                          Utils.showError(error, $('#listTracksMsgs'));
+                                      });
+                                  }
+                              })
+                          )
+			  .append(
+			      $('<a class="btn btn-default" role="button">Load</a>').click(function(e){
+                                  $('#trackUUIDTxt').val(data.uuid);
+                                  $('#tracksDiv').collapse('toggle');
+                                  Dashboard.loadUUID();
+                              })
+                          )
+                      )
+                  )
               );
           });
       },function(error){
@@ -927,7 +952,7 @@ textarea:read-only {
             <div class="panel-heading link" data-toggle="collapse" data-target="#tracksDiv">
                 <h4 class="panel-title">Existing tracks<span class="caret"></span></h4>
             </div>
-            <div class="panel-collapse list-group" id="tracksDiv">
+            <div class="panel-collapse collapse list-group" id="tracksDiv">
             </div>
             <div id="tracksMsgs"></div>
         </div>
@@ -1205,6 +1230,20 @@ if((isset($_GET['op']) && $_GET['op'] == 'listTracks') && (isset($_REQUEST['secr
             }
         }
         echo '{"status" : 0, "list" : '.json_encode($tracks).'}';
+    }catch(Exception $ex){
+        echo '{"status" : -1, "error" : "'.$ex->getMessage().'"}';
+        $logError($ex->getMessage());
+    }
+    exit();
+}
+
+if((isset($_GET['op']) && $_GET['op'] == 'deleteTrack') && (isset($_REQUEST['secret']) && $_REQUEST['secret'] == $dashboardPageSecret)){
+    header('Content-Type: application/json');
+    try{
+        if(!isset($_GET['uuid']) || $_GET['uuid']=='')
+            throw new Exception('uuid parameter required');
+        unlink(__DIR__.'/'.$configFolder.'/'.$_GET['uuid'].'.json');
+        echo '{"status" : 0}';
     }catch(Exception $ex){
         echo '{"status" : -1, "error" : "'.$ex->getMessage().'"}';
         $logError($ex->getMessage());
